@@ -7,7 +7,7 @@
     android:background="?android:attr/windowBackground"
     android:orientation="vertical"
     android:padding="@dimen/activity_horizontal_margin"
-    tools:context="com.zeapo.pwdstore.crypto.PgpActivity">
+    tools:context="com.zeapo.pwdstore.crypto.BasePgpActivity">
 
     <androidx.appcompat.widget.AppCompatEditText
         android:id="@+id/crypto_password_category"

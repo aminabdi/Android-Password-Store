@@ -10,7 +10,7 @@ import android.os.Handler
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
-import com.zeapo.pwdstore.crypto.PgpActivity
+import com.zeapo.pwdstore.crypto.BasePgpActivity
 import com.zeapo.pwdstore.utils.BiometricAuthenticator
 
 class LaunchActivity : AppCompatActivity() {
@@ -40,7 +40,7 @@ class LaunchActivity : AppCompatActivity() {
 
     private fun startTargetActivity(noAuth: Boolean) {
         if (intent?.getStringExtra("OPERATION") == "DECRYPT") {
-            val decryptIntent = Intent(this, PgpActivity::class.java)
+            val decryptIntent = Intent(this, BasePgpActivity::class.java)
             decryptIntent.putExtra("NAME", intent.getStringExtra("NAME"))
             decryptIntent.putExtra("FILE_PATH", intent.getStringExtra("FILE_PATH"))
             decryptIntent.putExtra("REPO_PATH", intent.getStringExtra("REPO_PATH"))

@@ -57,7 +57,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.charset.Charset
 import java.util.Date
-import kotlinx.android.synthetic.main.decrypt_layout.*
+import kotlinx.android.synthetic.main.activity_decrypt.*
 import kotlinx.android.synthetic.main.encrypt_layout.*
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
@@ -75,26 +75,26 @@ import org.apache.commons.io.FilenameUtils
 import org.openintents.openpgp.IOpenPgpService2
 import org.openintents.openpgp.OpenPgpError
 
-class PgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBound {
-    private val clipboard by lazy { getSystemService<ClipboardManager>() }
+open class BasePgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBound {
+    val clipboard by lazy { getSystemService<ClipboardManager>() }
     private var passwordEntry: PasswordEntry? = null
-    private var api: OpenPgpApi? = null
+    var api: OpenPgpApi? = null
 
     private var editName: String? = null
     private var editPass: String? = null
     private var editExtra: String? = null
 
-    private val suggestedName by lazy { intent.getStringExtra("SUGGESTED_NAME") }
-    private val suggestedPass by lazy { intent.getStringExtra("SUGGESTED_PASS") }
-    private val suggestedExtra by lazy { intent.getStringExtra("SUGGESTED_EXTRA") }
-    private val shouldGeneratePassword by lazy { intent.getBooleanExtra("GENERATE_PASSWORD", false) }
+    val suggestedName by lazy { intent.getStringExtra("SUGGESTED_NAME") }
+    val suggestedPass by lazy { intent.getStringExtra("SUGGESTED_PASS") }
+    val suggestedExtra by lazy { intent.getStringExtra("SUGGESTED_EXTRA") }
+    val shouldGeneratePassword by lazy { intent.getBooleanExtra("GENERATE_PASSWORD", false) }
 
-    private val operation: String by lazy { intent.getStringExtra("OPERATION") }
-    private val repoPath: String by lazy { intent.getStringExtra("REPO_PATH") }
+    val operation: String by lazy { intent.getStringExtra("OPERATION") }
+    val repoPath: String by lazy { intent.getStringExtra("REPO_PATH") }
 
-    private val fullPath: String by lazy { intent.getStringExtra("FILE_PATH") }
-    private val name: String by lazy { getName(fullPath) }
-    private val lastChangedString: CharSequence by lazy {
+    val fullPath: String by lazy { intent.getStringExtra("FILE_PATH") }
+    val name: String by lazy { getName(fullPath) }
+    val lastChangedString: CharSequence by lazy {
         getLastChangedString(
                 intent.getLongExtra(
                         "LAST_CHANGED_TIMESTAMP",
@@ -102,7 +102,7 @@ class PgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBound {
                 )
         )
     }
-    private val relativeParentPath: String by lazy { getParentPath(fullPath, repoPath) }
+    val relativeParentPath: String by lazy { getParentPath(fullPath, repoPath) }
 
     val settings: SharedPreferences by lazy { PreferenceManager.getDefaultSharedPreferences(this) }
     private val keyIDs get() = _keyIDs
@@ -137,7 +137,7 @@ class PgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBound {
 
         when (operation) {
             "DECRYPT", "EDIT" -> {
-                setContentView(R.layout.decrypt_layout)
+                setContentView(R.layout.activity_decrypt)
                 crypto_password_category_decrypt.text = relativeParentPath
                 crypto_password_file.text = name
                 crypto_password_file.setOnLongClickListener {
@@ -290,7 +290,7 @@ class PgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBound {
                 }
                 finish()
             }
-            R.id.copy_password -> copyPasswordToClipBoard()
+            R.id.copy_password -> copyPasswordToClipboard()
             R.id.share_password_as_plaintext -> shareAsPlaintext()
             R.id.edit_password -> editPassword()
             R.id.crypto_confirm_add -> encrypt()
@@ -309,7 +309,7 @@ class PgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBound {
     /**
      * Shows a simple toast message
      */
-    private fun showSnackbar(message: String, length: Int = Snackbar.LENGTH_SHORT) {
+    internal fun showSnackbar(message: String, length: Int = Snackbar.LENGTH_SHORT) {
         runOnUiThread { Snackbar.make(findViewById(android.R.id.content), message, length).show() }
     }
 
@@ -324,8 +324,8 @@ class PgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBound {
 
         val pi: PendingIntent? = result.getParcelableExtra(RESULT_INTENT)
         try {
-            this@PgpActivity.startIntentSenderFromChild(
-                    this@PgpActivity, pi?.intentSender, requestCode,
+            this@BasePgpActivity.startIntentSenderFromChild(
+                    this@BasePgpActivity, pi?.intentSender, requestCode,
                     null, 0, 0, 0
             )
         } catch (e: IntentSender.SendIntentException) {
@@ -480,11 +480,11 @@ class PgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBound {
                                                 }
                                             } else {
                                                 // show a dialog asking permission to update the HOTP counter in the entry
-                                                val checkInflater = LayoutInflater.from(this@PgpActivity)
+                                                val checkInflater = LayoutInflater.from(this@BasePgpActivity)
                                                 val checkLayout = checkInflater.inflate(R.layout.otp_confirm_layout, null)
                                                 val rememberCheck: CheckBox =
                                                         checkLayout.findViewById(R.id.hotp_remember_checkbox)
-                                                val dialogBuilder = MaterialAlertDialogBuilder(this@PgpActivity)
+                                                val dialogBuilder = MaterialAlertDialogBuilder(this@BasePgpActivity)
                                                 dialogBuilder.setView(checkLayout)
                                                 dialogBuilder.setMessage(R.string.dialog_update_body)
                                                         .setCancelable(false)
@@ -523,7 +523,7 @@ class PgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBound {
                                 }
 
                                 if (settings.getBoolean("copy_on_decrypt", true)) {
-                                    copyPasswordToClipBoard()
+                                    copyPasswordToClipboard()
                                 }
                             } catch (e: Exception) {
                                 e(e) { "An Exception occurred" }
@@ -559,7 +559,7 @@ class PgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBound {
         }
 
         if (copy) {
-            copyPasswordToClipBoard()
+            copyPasswordToClipboard()
         }
 
         val data = Intent()
@@ -639,7 +639,7 @@ class PgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBound {
     /**
      * Opens EncryptActivity with the information for this file to be edited
      */
-    private fun editPassword() {
+    internal fun editPassword() {
         setContentView(R.layout.encrypt_layout)
         generate_password?.setOnClickListener {
             when (settings.getString("pref_key_pwgen_type", KEY_PWGEN_TYPE_CLASSIC)) {
@@ -664,7 +664,7 @@ class PgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBound {
 
         delayTask?.cancelAndSignal(true)
 
-        val data = Intent(this, PgpActivity::class.java)
+        val data = Intent(this, BasePgpActivity::class.java)
         data.putExtra("OPERATION", "EDIT")
         data.putExtra("fromDecrypt", true)
         intent = data
@@ -682,7 +682,7 @@ class PgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBound {
             editPass = passwordEntry?.password
             editExtra = passwordEntry?.extraContent
 
-            val data = Intent(this, PgpActivity::class.java)
+            val data = Intent(this, BasePgpActivity::class.java)
             data.putExtra("OPERATION", "INCREMENT")
             data.putExtra("fromDecrypt", true)
             intent = data
@@ -809,7 +809,7 @@ class PgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBound {
         }
     }
 
-    private fun copyPasswordToClipBoard() {
+    internal fun copyPasswordToClipboard() {
         val clipboard = clipboard ?: return
         var pass = passwordEntry?.password
 
@@ -826,7 +826,7 @@ class PgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBound {
 
         var clearAfter = 45
         try {
-            clearAfter = Integer.parseInt(settings.getString("general_show_time", "45") as String)
+            clearAfter = settings.getString("general_show_time", "45")?.toInt() ?: 45
         } catch (e: NumberFormatException) {
             // ignore and keep default
         }
@@ -853,7 +853,7 @@ class PgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBound {
         showSnackbar(resources.getString(R.string.clipboard_otp_toast_text))
     }
 
-    private fun shareAsPlaintext() {
+    internal fun shareAsPlaintext() {
         if (findViewById<View>(R.id.share_password_as_plaintext) == null)
             return
 
@@ -913,7 +913,7 @@ class PgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBound {
         }
 
         fun execute() {
-            service = Intent(this@PgpActivity, ClipboardService::class.java).also {
+            service = Intent(this@BasePgpActivity, ClipboardService::class.java).also {
                 it.action = ACTION_START
             }
             doOnPreExecute()

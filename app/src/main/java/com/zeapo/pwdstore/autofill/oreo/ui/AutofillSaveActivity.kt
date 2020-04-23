@@ -23,7 +23,7 @@ import com.zeapo.pwdstore.autofill.oreo.AutofillPreferences
 import com.zeapo.pwdstore.autofill.oreo.Credentials
 import com.zeapo.pwdstore.autofill.oreo.FillableForm
 import com.zeapo.pwdstore.autofill.oreo.FormOrigin
-import com.zeapo.pwdstore.crypto.PgpActivity
+import com.zeapo.pwdstore.crypto.BasePgpActivity
 import com.zeapo.pwdstore.utils.PasswordRepository
 import java.io.File
 
@@ -97,7 +97,7 @@ class AutofillSaveActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val repo = PasswordRepository.getRepositoryDirectory(applicationContext)
-        val saveIntent = Intent(this, PgpActivity::class.java).apply {
+        val saveIntent = Intent(this, BasePgpActivity::class.java).apply {
             putExtras(
                 bundleOf(
                     "REPO_PATH" to repo.absolutePath,

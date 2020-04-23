@@ -40,7 +40,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.zeapo.pwdstore.autofill.AutofillPreferenceActivity
 import com.zeapo.pwdstore.autofill.oreo.BrowserAutofillSupportLevel
 import com.zeapo.pwdstore.autofill.oreo.getInstalledBrowsersWithAutofillSupportLevel
-import com.zeapo.pwdstore.crypto.PgpActivity
+import com.zeapo.pwdstore.crypto.BasePgpActivity
 import com.zeapo.pwdstore.git.GitConfigActivity
 import com.zeapo.pwdstore.git.GitServerConfigActivity
 import com.zeapo.pwdstore.pwgenxkpwd.XkpwdDictionary
@@ -154,7 +154,7 @@ class UserPreference : AppCompatActivity() {
                     Snackbar.make(requireView(), resources.getString(R.string.provider_toast_text), Snackbar.LENGTH_LONG).show()
                     false
                 } else {
-                    val intent = Intent(callingActivity, PgpActivity::class.java)
+                    val intent = Intent(callingActivity, BasePgpActivity::class.java)
                     intent.putExtra("OPERATION", "GET_KEY_ID")
                     startActivityForResult(intent, IMPORT_PGP_KEY)
                     true
@@ -358,11 +358,11 @@ class UserPreference : AppCompatActivity() {
 
         private fun showHideDependentPrefs(newValue: Any?, prefIsCustomDict: CheckBoxPreference?, prefCustomDictPicker: Preference?) {
             when (newValue as String) {
-                PgpActivity.KEY_PWGEN_TYPE_CLASSIC -> {
+                BasePgpActivity.KEY_PWGEN_TYPE_CLASSIC -> {
                     prefIsCustomDict?.isVisible = false
                     prefCustomDictPicker?.isVisible = false
                 }
-                PgpActivity.KEY_PWGEN_TYPE_XKPASSWD -> {
+                BasePgpActivity.KEY_PWGEN_TYPE_XKPASSWD -> {
                     prefIsCustomDict?.isVisible = true
                     prefCustomDictPicker?.isVisible = true
                 }
