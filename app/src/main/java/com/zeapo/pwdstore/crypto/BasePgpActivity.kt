@@ -77,7 +77,7 @@ import org.openintents.openpgp.OpenPgpError
 
 open class BasePgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBound {
     val clipboard by lazy { getSystemService<ClipboardManager>() }
-    private var passwordEntry: PasswordEntry? = null
+    internal var passwordEntry: PasswordEntry? = null
     var api: OpenPgpApi? = null
 
     private var editName: String? = null
@@ -94,14 +94,6 @@ open class BasePgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBou
 
     val fullPath: String by lazy { intent.getStringExtra("FILE_PATH") }
     val name: String by lazy { getName(fullPath) }
-    val lastChangedString: CharSequence by lazy {
-        getLastChangedString(
-                intent.getLongExtra(
-                        "LAST_CHANGED_TIMESTAMP",
-                        -1L
-                )
-        )
-    }
     val relativeParentPath: String by lazy { getParentPath(fullPath, repoPath) }
 
     val settings: SharedPreferences by lazy { PreferenceManager.getDefaultSharedPreferences(this) }
@@ -136,25 +128,6 @@ open class BasePgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBou
         }
 
         when (operation) {
-            "DECRYPT", "EDIT" -> {
-                setContentView(R.layout.activity_decrypt)
-                crypto_password_category_decrypt.text = relativeParentPath
-                crypto_password_file.text = name
-                crypto_password_file.setOnLongClickListener {
-                    val clipboard = clipboard ?: return@setOnLongClickListener false
-                    val clip = ClipData.newPlainText("pgp_handler_result_pm", name)
-                    clipboard.setPrimaryClip(clip)
-                    showSnackbar(this.resources.getString(R.string.clipboard_username_toast_text))
-                    true
-                }
-
-                crypto_password_last_changed.text = try {
-                    this.resources.getString(R.string.last_changed, lastChangedString)
-                } catch (e: RuntimeException) {
-                    showSnackbar(getString(R.string.get_last_changed_failed))
-                    ""
-                }
-            }
             "ENCRYPT" -> {
                 setContentView(R.layout.encrypt_layout)
 
@@ -274,7 +247,6 @@ open class BasePgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBou
         // Do not use the value `operation` in this case as it is not valid when editing
         val menuId = when (intent.getStringExtra("OPERATION")) {
             "ENCRYPT", "EDIT" -> R.menu.pgp_handler_new_password
-            "DECRYPT" -> R.menu.pgp_handler
             else -> R.menu.pgp_handler
         }
 
@@ -319,7 +291,7 @@ open class BasePgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBou
      * @param result The intent returned by OpenKeychain
      * @param requestCode The code we'd like to use to identify the behaviour
      */
-    private fun handleUserInteractionRequest(result: Intent, requestCode: Int) {
+    internal fun handleUserInteractionRequest(result: Intent, requestCode: Int) {
         i { "RESULT_CODE_USER_INTERACTION_REQUIRED" }
 
         val pi: PendingIntent? = result.getParcelableExtra(RESULT_INTENT)
@@ -338,7 +310,7 @@ open class BasePgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBou
      *
      * @param result The intent returned by OpenKeychain
      */
-    private fun handleError(result: Intent) {
+    internal fun handleError(result: Intent) {
         // TODO show what kind of error it is
         /* For example:
          * No suitable key found -> no key in OpenKeyChain
@@ -690,13 +662,13 @@ open class BasePgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBou
         }
     }
 
-    private fun calculateHotp(entry: PasswordEntry) {
+    internal fun calculateHotp(entry: PasswordEntry) {
         copyOtpToClipBoard(Otp.calculateCode(entry.hotpSecret, entry.hotpCounter!! + 1, "sha1", entry.digits))
         crypto_otp_show.text = Otp.calculateCode(entry.hotpSecret, entry.hotpCounter + 1, "sha1", entry.digits)
         crypto_extra_show.text = entry.extraContent
     }
 
-    private fun calculateAndCommitHotp(entry: PasswordEntry) {
+    internal fun calculateAndCommitHotp(entry: PasswordEntry) {
         calculateHotp(entry)
         entry.incrementHotp()
         // we must set the result before encrypt() is called, since in
@@ -839,14 +811,14 @@ open class BasePgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBou
         }
     }
 
-    private fun copyUsernameToClipBoard(username: String) {
+    internal fun copyUsernameToClipBoard(username: String) {
         val clipboard = clipboard ?: return
         val clip = ClipData.newPlainText("pgp_handler_result_pm", username)
         clipboard.setPrimaryClip(clip)
         showSnackbar(resources.getString(R.string.clipboard_username_toast_text))
     }
 
-    private fun copyOtpToClipBoard(code: String) {
+    internal fun copyOtpToClipBoard(code: String) {
         val clipboard = clipboard ?: return
         val clip = ClipData.newPlainText("pgp_handler_result_pm", code)
         clipboard.setPrimaryClip(clip)
@@ -878,18 +850,6 @@ open class BasePgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBou
         // launch a new one
         delayTask = DelayShow()
         delayTask?.execute()
-    }
-
-    /**
-     * Gets a relative string describing when this shape was last changed
-     * (e.g. "one hour ago")
-     */
-    private fun getLastChangedString(timeStamp: Long): CharSequence {
-        if (timeStamp < 0) {
-            throw RuntimeException()
-        }
-
-        return DateUtils.getRelativeTimeSpanString(this, timeStamp, true)
     }
 
     @Suppress("StaticFieldLeak")
@@ -963,6 +923,8 @@ open class BasePgpActivity : AppCompatActivity(), OpenPgpServiceConnection.OnBou
         const val OPEN_PGP_BOUND = 101
         const val REQUEST_DECRYPT = 202
         const val REQUEST_KEY_ID = 203
+        const val ARG_PGP_OP = "OPERATION"
+        const val PGP_OP_DECRYPT = "DECRYPT"
 
         private const val ACTION_CLEAR = "ACTION_CLEAR_CLIPBOARD"
         private const val ACTION_START = "ACTION_START_CLIPBOARD_TIMER"

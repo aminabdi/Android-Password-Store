@@ -48,6 +48,7 @@ import com.zeapo.pwdstore.autofill.oreo.BrowserAutofillSupportLevel
 import com.zeapo.pwdstore.autofill.oreo.getInstalledBrowsersWithAutofillSupportLevel
 import com.zeapo.pwdstore.crypto.BasePgpActivity
 import com.zeapo.pwdstore.crypto.BasePgpActivity.Companion.getLongName
+import com.zeapo.pwdstore.crypto.DecryptActivity
 import com.zeapo.pwdstore.git.BaseGitActivity
 import com.zeapo.pwdstore.git.GitAsyncTask
 import com.zeapo.pwdstore.git.GitOperation
@@ -497,14 +498,14 @@ class PasswordStore : AppCompatActivity() {
     }
 
     fun decryptPassword(item: PasswordItem) {
-        val decryptIntent = Intent(this, BasePgpActivity::class.java)
+        val decryptIntent = Intent(this, DecryptActivity::class.java)
         val authDecryptIntent = Intent(this, LaunchActivity::class.java)
         for (intent in arrayOf(decryptIntent, authDecryptIntent)) {
             intent.putExtra("NAME", item.toString())
             intent.putExtra("FILE_PATH", item.file.absolutePath)
             intent.putExtra("REPO_PATH", getRepositoryDirectory(applicationContext).absolutePath)
             intent.putExtra("LAST_CHANGED_TIMESTAMP", getLastChangedTimestamp(item.file.absolutePath))
-            intent.putExtra("OPERATION", "DECRYPT")
+            intent.putExtra(BasePgpActivity.ARG_PGP_OP, BasePgpActivity.PGP_OP_DECRYPT)
         }
 
         // Adds shortcut
@@ -533,7 +534,7 @@ class PasswordStore : AppCompatActivity() {
         intent.putExtra("FILE_PATH", item.file.absolutePath)
         intent.putExtra("PARENT_PATH", item.file.parentFile!!.absolutePath)
         intent.putExtra("REPO_PATH", getRepositoryDirectory(applicationContext).absolutePath)
-        intent.putExtra("OPERATION", "EDIT")
+        intent.putExtra(BasePgpActivity.ARG_PGP_OP, "EDIT")
         startActivityForResult(intent, REQUEST_CODE_EDIT)
     }
 
