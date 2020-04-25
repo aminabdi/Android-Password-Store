@@ -53,9 +53,10 @@ import com.zeapo.pwdstore.git.GitAsyncTask
 import com.zeapo.pwdstore.git.GitOperation
 import com.zeapo.pwdstore.git.GitOperationActivity
 import com.zeapo.pwdstore.git.GitServerConfigActivity
+import com.zeapo.pwdstore.repository.PasswordSortOrder
+import com.zeapo.pwdstore.repository.PasswordSortOrder.Companion.getSortOrder
 import com.zeapo.pwdstore.ui.dialogs.FolderCreationDialogFragment
 import com.zeapo.pwdstore.utils.PasswordItem
-import com.zeapo.pwdstore.utils.PasswordRepository
 import com.zeapo.pwdstore.utils.PasswordRepository.Companion.closeRepository
 import com.zeapo.pwdstore.utils.PasswordRepository.Companion.createRepository
 import com.zeapo.pwdstore.utils.PasswordRepository.Companion.getPasswords
@@ -63,7 +64,6 @@ import com.zeapo.pwdstore.utils.PasswordRepository.Companion.getRepository
 import com.zeapo.pwdstore.utils.PasswordRepository.Companion.getRepositoryDirectory
 import com.zeapo.pwdstore.utils.PasswordRepository.Companion.initialize
 import com.zeapo.pwdstore.utils.PasswordRepository.Companion.isInitialized
-import com.zeapo.pwdstore.utils.PasswordRepository.PasswordSortOrder.Companion.getSortOrder
 import java.io.File
 import java.lang.Character.UnicodeBlock
 import java.util.Stack
@@ -831,7 +831,7 @@ class PasswordStore : AppCompatActivity() {
         finish()
     }
 
-    private val sortOrder: PasswordRepository.PasswordSortOrder
+    private val sortOrder: PasswordSortOrder
         get() = getSortOrder(settings)
 
     companion object {

@@ -28,6 +28,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.zeapo.pwdstore.autofill.oreo.AutofillPreferences
 import com.zeapo.pwdstore.autofill.oreo.DirectoryStructure
+import com.zeapo.pwdstore.repository.PasswordSortOrder
 import com.zeapo.pwdstore.utils.PasswordItem
 import com.zeapo.pwdstore.utils.PasswordRepository
 import java.io.File
@@ -87,22 +88,20 @@ private val CaseInsensitiveComparator = Collator.getInstance().apply {
 }
 
 private fun PasswordItem.Companion.makeComparator(
-    typeSortOrder: PasswordRepository.PasswordSortOrder,
+    typeSortOrder: PasswordSortOrder,
     directoryStructure: DirectoryStructure
 ): Comparator<PasswordItem> {
     return when (typeSortOrder) {
-        PasswordRepository.PasswordSortOrder.FOLDER_FIRST -> compareBy { it.type }
+        PasswordSortOrder.FOLDER_FIRST -> compareBy { it.type }
         // In order to let INDEPENDENT not distinguish between items based on their type, we simply
         // declare them all equal at this stage.
-        PasswordRepository.PasswordSortOrder.INDEPENDENT -> Comparator<PasswordItem> { _, _ -> 0 }
-        PasswordRepository.PasswordSortOrder.FILE_FIRST -> compareByDescending { it.type }
-    }
-        .then(compareBy(nullsLast(CaseInsensitiveComparator)) {
-            directoryStructure.getIdentifierFor(it.file)
-        })
-        .then(compareBy(nullsLast(CaseInsensitiveComparator)) {
-            directoryStructure.getUsernameFor(it.file)
-        })
+        PasswordSortOrder.INDEPENDENT -> Comparator<PasswordItem> { _, _ -> 0 }
+        PasswordSortOrder.FILE_FIRST -> compareByDescending { it.type }
+    }.then(compareBy(nullsLast(CaseInsensitiveComparator)) {
+        directoryStructure.getIdentifierFor(it.file)
+    }).then(compareBy(nullsLast(CaseInsensitiveComparator)) {
+        directoryStructure.getUsernameFor(it.file)
+    })
 }
 
 val PasswordItem.stableId: String
@@ -149,7 +148,7 @@ class SearchableRepositoryViewModel(application: Application) : AndroidViewModel
         }
 
     private val typeSortOrder
-        get() = PasswordRepository.PasswordSortOrder.getSortOrder(settings)
+        get() = PasswordSortOrder.getSortOrder(settings)
     private val directoryStructure
         get() = AutofillPreferences.directoryStructure(getApplication())
     private val itemComparator

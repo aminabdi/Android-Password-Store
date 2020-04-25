@@ -8,9 +8,9 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
+import com.zeapo.pwdstore.repository.PasswordSortOrder
 import java.io.File
 import java.io.FileFilter
-import java.util.Comparator
 import org.apache.commons.io.filefilter.FileFilterUtils
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Repository
@@ -20,30 +20,6 @@ import org.eclipse.jgit.transport.RemoteConfig
 import org.eclipse.jgit.transport.URIish
 
 open class PasswordRepository protected constructor() {
-
-    @Suppress("Unused")
-    enum class PasswordSortOrder(val comparator: Comparator<PasswordItem>) {
-
-        FOLDER_FIRST(Comparator { p1: PasswordItem, p2: PasswordItem ->
-            (p1.type + p1.name)
-                    .compareTo(p2.type + p2.name, ignoreCase = true)
-        }),
-
-        INDEPENDENT(Comparator { p1: PasswordItem, p2: PasswordItem ->
-            p1.name.compareTo(p2.name, ignoreCase = true)
-        }),
-
-        FILE_FIRST(Comparator { p1: PasswordItem, p2: PasswordItem ->
-            (p2.type + p1.name).compareTo(p1.type + p2.name, ignoreCase = true)
-        });
-
-        companion object {
-            @JvmStatic
-            fun getSortOrder(settings: SharedPreferences): PasswordSortOrder {
-                return valueOf(settings.getString("sort_order", null) ?: FOLDER_FIRST.name)
-            }
-        }
-    }
 
     companion object {
 
